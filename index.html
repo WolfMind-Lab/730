@@ -2,52 +2,62 @@
 <html lang="it">
 <head>
 <meta charset="UTF-8">
-<title>CAF Trainer PRO - Casì + Pratica</title>
+<title>CAF Trainer PRO MAX</title>
 
 <style>
-body { font-family: Arial; max-width: 1000px; margin:auto; background:#f5f5f5; }
+body { font-family: Arial; max-width:1000px; margin:auto; background:#f5f5f5; }
 .card { background:white; padding:15px; margin-top:10px; border-radius:8px; }
-button { padding:10px; margin:5px; cursor:pointer; }
 input, select { width:100%; padding:6px; margin:4px 0; }
-
-.hidden { display:none; }
-table { width:100%; border-collapse:collapse; margin-top:10px; }
-th,td { border:1px solid #ccc; padding:6px; }
+button { padding:10px; margin:5px; cursor:pointer; }
 
 .step { display:none; }
 .step.active { display:block; }
 
+table { width:100%; border-collapse:collapse; margin-top:10px; }
+th,td { border:1px solid #ccc; padding:6px; }
+
 .bad { color:red; }
 .good { color:green; }
+
+.progress { font-weight:bold; margin-bottom:10px; }
 </style>
 </head>
 
 <body>
 
-<h1>🧾 CAF TRAINER PRO</h1>
+<h1>🧾 CAF TRAINER PRO MAX</h1>
+<p>Simulatore pratiche ISEE (DSU) + 730</p>
 
 <div class="card">
 
-<!-- SELEZIONE MODALITÀ -->
-<div id="menu">
+<!-- AVVIO PRATICA -->
+<div id="start">
+<h2>📁 Nuova Pratica</h2>
 
-<h2>Seleziona modalità</h2>
+<select id="tipo">
+<option value="isee">ISEE (DSU)</option>
+<option value="730">730</option>
+</select>
 
-<button onclick="startCase()">🧠 Caso d’esame</button>
-<button onclick="startPractice()">🧾 Pratica guidata</button>
-
+<button onclick="start()">Crea pratica</button>
 </div>
 
-<!-- AREA LAVORO -->
-<div id="app" class="hidden">
+<!-- FLUSSO -->
+<div id="flow" style="display:none">
 
-<h3 id="modeTitle"></h3>
-
-<div id="progress"></div>
+<div class="progress" id="progress">Step 0 / 5</div>
 
 <!-- STEP 1 -->
 <div class="step active">
-<h3>1. Nucleo familiare</h3>
+<h3>🟦 Anagrafica pratica</h3>
+<input id="nomePratica" placeholder="Nome contribuente">
+<input id="cf" placeholder="Codice fiscale">
+<button onclick="next()">Avanti</button>
+</div>
+
+<!-- STEP 2 -->
+<div class="step">
+<h3>🟨 Nucleo familiare</h3>
 
 <input id="nome" placeholder="Nome">
 <select id="ruolo">
@@ -62,34 +72,38 @@ th,td { border:1px solid #ccc; padding:6px; }
 <button onclick="addPerson()">Aggiungi persona</button>
 
 <table>
-<thead><tr><th>Nome</th><th>Ruolo</th><th>Reddito</th><th>Patrimonio</th></tr></thead>
-<tbody id="tab"></tbody>
+<thead>
+<tr>
+<th>Nome</th><th>Ruolo</th><th>Reddito</th><th>Patrimonio</th>
+</tr>
+</thead>
+<tbody id="people"></tbody>
 </table>
 
-<button onclick="next()">Avanti</button>
+<button onclick="next()">Genera DSU</button>
 </div>
 
-<!-- STEP 2 -->
+<!-- STEP 3 DSU -->
 <div class="step">
-<h3>2. Documento</h3>
+<h3>📄 DSU (Dichiarazione Sostitutiva Unica)</h3>
 
-<div id="doc"></div>
+<div id="dsuView"></div>
 
-<button onclick="next()">Avanti</button>
-</div>
-
-<!-- STEP 3 -->
-<div class="step">
-<h3>3. Controllo CAF</h3>
-
-<div id="check"></div>
-
-<button onclick="next()">Esito</button>
+<button onclick="next()">Calcola ISEE</button>
 </div>
 
 <!-- STEP 4 -->
 <div class="step">
-<h3>4. Esito finale</h3>
+<h3>🧮 Elaborazione ISEE</h3>
+
+<div id="calc"></div>
+
+<button onclick="next()">Esito finale</button>
+</div>
+
+<!-- STEP 5 -->
+<div class="step">
+<h3>🟩 Esito finale</h3>
 
 <h2 id="out"></h2>
 
@@ -106,102 +120,101 @@ th,td { border:1px solid #ccc; padding:6px; }
 ========================= */
 let people = [];
 let step = 0;
-let mode = "";
+let tipo = "";
+let dsu = {};
 
 /* =========================
-   CASI PRECARICATI
+   START
 ========================= */
-let cases = [
-{
-  nome:"Famiglia Rossi",
-  people:[
-    {nome:"Mario", ruolo:"titolare", reddito:20000, patrimonio:5000},
-    {nome:"Anna", ruolo:"coniuge", reddito:0, patrimonio:0},
-    {nome:"Luca", ruolo:"figlio", reddito:0, patrimonio:0}
-  ],
-  errori:"Manca reddito coniuge"
-}
-];
+function start(){
+tipo = document.getElementById("tipo").value;
 
-let currentCase = null;
+document.getElementById("start").style.display = "none";
+document.getElementById("flow").style.display = "block";
 
-/* =========================
-   MODALITÀ
-========================= */
-function startCase(){
-mode="case";
-currentCase = cases[0];
-
-people = JSON.parse(JSON.stringify(currentCase.people));
-
-enterApp();
-}
-
-function startPractice(){
-mode="practice";
-people=[];
-enterApp();
-}
-
-function enterApp(){
-document.getElementById("menu").classList.add("hidden");
-document.getElementById("app").classList.remove("hidden");
-
-document.getElementById("modeTitle").innerText =
-mode==="case" ? "🧠 Caso d’esame" : "🧾 Pratica guidata";
-
-render();
 showStep(0);
 }
 
 /* =========================
    NAV
 ========================= */
-function next(){ step++; showStep(step); }
+function next(){
+step++;
+showStep(step);
+}
 
+/* =========================
+   STEP ENGINE
+========================= */
 function showStep(i){
 
-let steps=document.querySelectorAll(".step");
-
+let steps = document.querySelectorAll(".step");
 steps.forEach((s,idx)=>s.classList.toggle("active",idx===i));
 
 document.getElementById("progress").innerText =
-"Step " + i + "/4";
+"Step " + i + " / 5";
 
-/* DOC */
-if(i===1){
-document.getElementById("doc").innerText =
-mode==="case"
-? "Completa dati mancanti e verifica coerenza"
-: "Inserisci correttamente DSU/730";
-}
-
-/* CHECK */
+/* =========================
+   STEP 3 → DSU
+========================= */
 if(i===2){
 
-let err = [];
+buildDSU();
 
-if(people.length<2) err.push("Nucleo incompleto");
+document.getElementById("dsuView").innerHTML = `
+<b>📌 Quadro A - Nucleo familiare</b><br>
+${dsu.nucleo.map(p=>p.nome + " ("+p.ruolo+")").join("<br>")}
 
-if(mode==="case"){
-err.push(currentCase.errori);
+<br><br>
+
+<b>📌 Quadro FC1 - Redditi</b><br>
+€ ${dsu.redditi.toFixed(2)}
+
+<br><br>
+
+<b>📌 Quadro FC2/FC3 - Patrimoni</b><br>
+€ ${dsu.patrimoni.toFixed(2)}
+`;
 }
 
-document.getElementById("check").innerHTML =
-err.length ? "<span class='bad'>"+err.join("<br>")+"</span>"
-: "<span class='good'>OK</span>";
-}
-
-/* ESITO */
+/* =========================
+   STEP 4 → CALCOLO
+========================= */
 if(i===3){
 
-let red = people.reduce((a,b)=>a+b.reddito,0);
-let pat = people.reduce((a,b)=>a+b.patrimonio,0);
+let comp = dsu.nucleo.length;
 
-let isee = (red + pat*0.2)/Math.max(1,people.length);
+let scala = 1;
+if(comp==2) scala=1.57;
+else if(comp==3) scala=2.04;
+else if(comp==4) scala=2.46;
+else if(comp>=5) scala=2.85;
+
+let isee = (dsu.redditi + dsu.patrimoni*0.2) / scala;
+
+document.getElementById("calc").innerHTML =
+"Scala equivalenza: " + scala + "<br>" +
+"Redditi: € " + dsu.redditi + "<br>" +
+"Patrimoni: € " + dsu.patrimoni;
+}
+
+/* =========================
+   ESITO
+========================= */
+if(i===4){
+
+let comp = dsu.nucleo.length;
+
+let scala = 1;
+if(comp==2) scala=1.57;
+else if(comp==3) scala=2.04;
+else if(comp==4) scala=2.46;
+else if(comp>=5) scala=2.85;
+
+let isee = (dsu.redditi + dsu.patrimoni*0.2) / scala;
 
 document.getElementById("out").innerText =
-"ISEE simulato: € " + isee.toFixed(2);
+"ISEE CALCOLATO: € " + isee.toFixed(2);
 }
 
 }
@@ -222,11 +235,26 @@ render();
 }
 
 /* =========================
+   DSU BUILDER
+========================= */
+function buildDSU(){
+
+dsu.nucleo = people;
+
+dsu.redditi = people.reduce((a,b)=>a+b.reddito,0);
+
+dsu.patrimoni = people.reduce((a,b)=>a+b.patrimonio,0);
+}
+
+/* =========================
    RENDER
 ========================= */
 function render(){
 
-tab.innerHTML = people.map(p=>
+people.innerHTML = "";
+
+document.getElementById("people").innerHTML =
+people.map(p=>
 `<tr>
 <td>${p.nome}</td>
 <td>${p.ruolo}</td>
