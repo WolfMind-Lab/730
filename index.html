@@ -7,6 +7,7 @@
 <style>
 body { font-family: Arial; max-width:1000px; margin:auto; background:#f5f5f5; }
 .card { background:white; padding:15px; margin-top:10px; border-radius:8px; }
+
 input, select { width:100%; padding:6px; margin:4px 0; }
 button { padding:10px; margin:5px; cursor:pointer; }
 
@@ -16,9 +17,6 @@ button { padding:10px; margin:5px; cursor:pointer; }
 table { width:100%; border-collapse:collapse; margin-top:10px; }
 th,td { border:1px solid #ccc; padding:6px; }
 
-.bad { color:red; }
-.good { color:green; }
-
 .progress { font-weight:bold; margin-bottom:10px; }
 </style>
 </head>
@@ -26,11 +24,11 @@ th,td { border:1px solid #ccc; padding:6px; }
 <body>
 
 <h1>🧾 CAF TRAINER PRO MAX</h1>
-<p>Simulatore pratiche ISEE (DSU) + 730</p>
+<p>Simulatore ISEE (DSU strutturata)</p>
 
 <div class="card">
 
-<!-- AVVIO PRATICA -->
+<!-- START -->
 <div id="start">
 <h2>📁 Nuova Pratica</h2>
 
@@ -42,10 +40,10 @@ th,td { border:1px solid #ccc; padding:6px; }
 <button onclick="start()">Crea pratica</button>
 </div>
 
-<!-- FLUSSO -->
+<!-- FLOW -->
 <div id="flow" style="display:none">
 
-<div class="progress" id="progress">Step 0 / 5</div>
+<div class="progress" id="progress">Step 0 / 4</div>
 
 <!-- STEP 1 -->
 <div class="step active">
@@ -66,8 +64,8 @@ th,td { border:1px solid #ccc; padding:6px; }
 <option value="figlio">Figlio</option>
 </select>
 
-<input id="reddito" type="number" placeholder="Reddito">
-<input id="patrimonio" type="number" placeholder="Patrimonio">
+<input id="reddito" type="number" placeholder="Reddito (€)">
+<input id="patrimonio" type="number" placeholder="Patrimonio (€)">
 
 <button onclick="addPerson()">Aggiungi persona</button>
 
@@ -94,16 +92,7 @@ th,td { border:1px solid #ccc; padding:6px; }
 
 <!-- STEP 4 -->
 <div class="step">
-<h3>🧮 Elaborazione ISEE</h3>
-
-<div id="calc"></div>
-
-<button onclick="next()">Esito finale</button>
-</div>
-
-<!-- STEP 5 -->
-<div class="step">
-<h3>🟩 Esito finale</h3>
+<h3>🧮 Esito ISEE</h3>
 
 <h2 id="out"></h2>
 
@@ -121,12 +110,18 @@ th,td { border:1px solid #ccc; padding:6px; }
 let people = [];
 let step = 0;
 let tipo = "";
-let dsu = {};
+
+let dsu = {
+nucleo: [],
+redditi: 0,
+patrimoni: 0
+};
 
 /* =========================
    START
 ========================= */
 function start(){
+
 tipo = document.getElementById("tipo").value;
 
 document.getElementById("start").style.display = "none";
@@ -152,18 +147,26 @@ let steps = document.querySelectorAll(".step");
 steps.forEach((s,idx)=>s.classList.toggle("active",idx===i));
 
 document.getElementById("progress").innerText =
-"Step " + i + " / 5";
+"Step " + i + " / 4";
 
 /* =========================
-   STEP 3 → DSU
+   DSU STEP
 ========================= */
 if(i===2){
 
 buildDSU();
 
 document.getElementById("dsuView").innerHTML = `
+
+<h3>📄 DSU (Dichiarazione Sostitutiva Unica)</h3>
+
+<b>DSU richiesta:</b><br>
+Quadro A (nucleo), FC1 (redditi), FC2 (patrimonio mobiliare), FC3 (immobiliare)
+
+<br><br>
+
 <b>📌 Quadro A - Nucleo familiare</b><br>
-${dsu.nucleo.map(p=>p.nome + " ("+p.ruolo+")").join("<br>")}
+${dsu.nucleo.map(p => "• " + p.nome + " (" + p.ruolo + ")").join("<br>")}
 
 <br><br>
 
@@ -172,36 +175,20 @@ ${dsu.nucleo.map(p=>p.nome + " ("+p.ruolo+")").join("<br>")}
 
 <br><br>
 
-<b>📌 Quadro FC2/FC3 - Patrimoni</b><br>
+<b>📌 Quadro FC2 - Patrimonio mobiliare</b><br>
 € ${dsu.patrimoni.toFixed(2)}
+
+<br><br>
+
+<b>📌 Quadro FC3 - Patrimonio immobiliare</b><br>
+€ 0.00 (simulazione base)
 `;
 }
 
 /* =========================
-   STEP 4 → CALCOLO
+   ESITO ISEE
 ========================= */
 if(i===3){
-
-let comp = dsu.nucleo.length;
-
-let scala = 1;
-if(comp==2) scala=1.57;
-else if(comp==3) scala=2.04;
-else if(comp==4) scala=2.46;
-else if(comp>=5) scala=2.85;
-
-let isee = (dsu.redditi + dsu.patrimoni*0.2) / scala;
-
-document.getElementById("calc").innerHTML =
-"Scala equivalenza: " + scala + "<br>" +
-"Redditi: € " + dsu.redditi + "<br>" +
-"Patrimoni: € " + dsu.patrimoni;
-}
-
-/* =========================
-   ESITO
-========================= */
-if(i===4){
 
 let comp = dsu.nucleo.length;
 
@@ -241,9 +228,9 @@ function buildDSU(){
 
 dsu.nucleo = people;
 
-dsu.redditi = people.reduce((a,b)=>a+b.reddito,0);
+dsu.redditi = people.reduce((a,b)=>a + b.reddito,0);
 
-dsu.patrimoni = people.reduce((a,b)=>a+b.patrimonio,0);
+dsu.patrimoni = people.reduce((a,b)=>a + b.patrimonio,0);
 }
 
 /* =========================
@@ -251,10 +238,8 @@ dsu.patrimoni = people.reduce((a,b)=>a+b.patrimonio,0);
 ========================= */
 function render(){
 
-people.innerHTML = "";
-
 document.getElementById("people").innerHTML =
-people.map(p=>
+people.map(p =>
 `<tr>
 <td>${p.nome}</td>
 <td>${p.ruolo}</td>
