@@ -1,187 +1,186 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8">
-  <title>CAF Trainer - 730</title>
+<meta charset="UTF-8">
+<title>CAF Trainer PRO</title>
 
-  <style>
-    body { font-family: Arial; max-width: 900px; margin: auto; }
+<style>
+body { font-family: Arial; max-width: 1000px; margin:auto; }
 
-    .tabs { display: flex; margin-bottom: 10px; }
+.menu {
+  display:flex;
+  margin-bottom:10px;
+}
 
-    .tab {
-      flex: 1;
-      padding: 10px;
-      cursor: pointer;
-      background: #eee;
-      border: 1px solid #ccc;
-      text-align: center;
-    }
+.menu div {
+  flex:1;
+  padding:10px;
+  background:#eee;
+  border:1px solid #ccc;
+  cursor:pointer;
+  text-align:center;
+}
 
-    .tab.active { background: #d4edda; font-weight: bold; }
+.menu .active { background:#cce5ff; font-weight:bold; }
 
-    .section {
-      display: none;
-      border: 1px solid #ccc;
-      padding: 15px;
-    }
+.page { display:none; border:1px solid #ccc; padding:15px; }
 
-    .section.active { display: block; }
+.page.active { display:block; }
 
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
+table { width:100%; border-collapse:collapse; }
 
-    th, td {
-      border: 1px solid #ccc;
-      padding: 8px;
-    }
+th,td { border:1px solid #ccc; padding:8px; }
 
-    button {
-      margin-top: 10px;
-      padding: 10px;
-      cursor: pointer;
-    }
-  </style>
+button { padding:10px; margin-top:10px; cursor:pointer; }
+
+h2 { margin-top:0; }
+</style>
+
 </head>
 
 <body>
 
-<h1>🧾 CAF Trainer - Simulatore 730</h1>
+<h1>🧾 CAF TRAINER PRO</h1>
 
-<!-- TAB -->
-<div class="tabs">
-  <div class="tab active" onclick="showTab(0)">👤 Contribuente</div>
-  <div class="tab" onclick="showTab(1)">💰 Redditi</div>
-  <div class="tab" onclick="showTab(2)">📉 Spese</div>
-  <div class="tab" onclick="showTab(3)">📊 Risultato</div>
+<!-- MENU -->
+<div class="menu">
+  <div class="active" onclick="showPage(0)">🏠 Home</div>
+  <div onclick="showPage(1)">🧮 ISEE</div>
+  <div onclick="showPage(2)">🧾 730</div>
+  <div onclick="showPage(3)">📊 Esiti</div>
 </div>
 
-<!-- 1 CONDIZIONE -->
-<div class="section active">
-  <h2>Contribuente</h2>
-
-  <table>
-    <tr>
-      <th>Tipo lavoro</th>
-      <td>
-        <select id="tipo">
-          <option value="dipendente">Dipendente</option>
-          <option value="pensionato">Pensionato</option>
-        </select>
-      </td>
-    </tr>
-
-    <tr>
-      <th>Familiari a carico</th>
-      <td><input type="number" id="familiari" value="0"></td>
-    </tr>
-  </table>
+<!-- HOME -->
+<div class="page active">
+  <h2>Benvenuta nel simulatore CAF</h2>
+  <p>Strumento di allenamento per ISEE e 730.</p>
+  <ul>
+    <li>Simulazioni casi reali</li>
+    <li>Analisi automatica tipo CAF</li>
+    <li>Studio pratico per il corso</li>
+  </ul>
 </div>
 
-<!-- 2 REDDITI -->
-<div class="section">
-  <h2>Redditi e ritenute</h2>
+<!-- ISEE -->
+<div class="page">
 
-  <table>
-    <tr>
-      <th>Reddito da lavoro / pensione</th>
-      <td><input type="number" id="reddito" value="0"></td>
-    </tr>
+<h2>🧮 Simulatore ISEE</h2>
 
-    <tr>
-      <th>IRPEF trattenuta</th>
-      <td><input type="number" id="irpef" value="0"></td>
-    </tr>
-  </table>
+<table>
+<tr><th>Componenti nucleo</th><td><input id="isee_comp" type="number" value="1"></td></tr>
+<tr><th>Minori</th><td><input id="isee_min" type="number" value="0"></td></tr>
+<tr><th>Disabilità</th><td><input id="isee_dis" type="number" value="0"></td></tr>
+<tr><th>Reddito</th><td><input id="isee_red" type="number" value="0"></td></tr>
+<tr><th>Patrimonio</th><td><input id="isee_pat" type="number" value="0"></td></tr>
+</table>
+
+<button onclick="calcISEE()">Calcola ISEE</button>
+
+<h3 id="isee_out"></h3>
+
 </div>
 
-<!-- 3 SPESE -->
-<div class="section">
-  <h2>Spese detraibili</h2>
+<!-- 730 -->
+<div class="page">
 
-  <table>
-    <tr>
-      <th>Spese mediche</th>
-      <td><input type="number" id="mediche" value="0"></td>
-    </tr>
+<h2>🧾 Simulatore 730</h2>
 
-    <tr>
-      <th>Mutuo interessi</th>
-      <td><input type="number" id="mutuo" value="0"></td>
-    </tr>
+<table>
+<tr><th>Reddito</th><td><input id="r_red" type="number" value="0"></td></tr>
+<tr><th>IRPEF trattenuta</th><td><input id="r_irpef" type="number" value="0"></td></tr>
+<tr><th>Spese mediche</th><td><input id="r_med" type="number" value="0"></td></tr>
+<tr><th>Mutuo</th><td><input id="r_mut" type="number" value="0"></td></tr>
+<tr><th>Università</th><td><input id="r_uni" type="number" value="0"></td></tr>
+</table>
 
-    <tr>
-      <th>Spese universitarie</th>
-      <td><input type="number" id="uni" value="0"></td>
-    </tr>
-  </table>
+<button onclick="calc730()">Calcola 730</button>
 
-  <button onclick="calcola730()">📊 Calcola 730</button>
+<h3 id="out730"></h3>
+
 </div>
 
-<!-- 4 RISULTATO -->
-<div class="section">
-  <h2>Risultato 730</h2>
+<!-- ESITI -->
+<div class="page">
 
-  <h3 id="risultato"></h3>
+<h2>📊 Analisi CAF</h2>
+<div id="report"></div>
 
-  <div id="analisi"></div>
 </div>
 
 <script>
-function showTab(index) {
-  let tabs = document.querySelectorAll(".tab");
-  let sections = document.querySelectorAll(".section");
 
-  tabs.forEach((t,i) => {
-    t.classList.toggle("active", i === index);
-    sections[i].classList.toggle("active", i === index);
+let reportData = [];
+
+function showPage(i){
+  let pages=document.querySelectorAll(".page");
+  let menu=document.querySelectorAll(".menu div");
+
+  pages.forEach((p,idx)=>{
+    p.classList.toggle("active",idx===i);
+    menu[idx].classList.toggle("active",idx===i);
   });
 }
 
-function calcola730() {
+function calcISEE(){
 
-  let reddito = parseFloat(document.getElementById("reddito").value) || 0;
-  let irpef = parseFloat(document.getElementById("irpef").value) || 0;
+let c=document.getElementById("isee_comp").value*1;
+let m=document.getElementById("isee_min").value*1;
+let d=document.getElementById("isee_dis").value*1;
+let r=document.getElementById("isee_red").value*1;
+let p=document.getElementById("isee_pat").value*1;
 
-  let mediche = parseFloat(document.getElementById("mediche").value) || 0;
-  let mutuo = parseFloat(document.getElementById("mutuo").value) || 0;
-  let uni = parseFloat(document.getElementById("uni").value) || 0;
+let scala=1;
 
-  let familiari = parseInt(document.getElementById("familiari").value) || 0;
+if(c==2)scala=1.57;
+else if(c==3)scala=2.04;
+else if(c==4)scala=2.46;
+else if(c>=5)scala=2.85;
 
-  // DETRAZIONI SEMPLIFICATE (STUDIO)
-  let detrazioni = (mediche * 0.19) + (mutuo * 0.19) + (uni * 0.19);
+scala+=m*0.2;
+scala+=d*0.5;
 
-  let imposta = irpef - detrazioni;
+let isee=(r+(p*0.2))/scala;
 
-  let risultato = "";
+let res="ISEE: € "+isee.toFixed(2);
 
-  if (imposta > 0) {
-    risultato = "💸 Debito stimato: € " + imposta.toFixed(2);
-  } else {
-    risultato = "💰 Credito stimato: € " + Math.abs(imposta).toFixed(2);
-  }
+document.getElementById("isee_out").innerText=res;
 
-  document.getElementById("risultato").innerText = risultato;
-
-  let note = "<ul>";
-
-  if (familiari > 0)
-    note += "<li>✔ Familiari a carico presenti</li>";
-
-  if (mediche > 1000)
-    note += "<li>✔ Spese mediche rilevanti</li>";
-
-  if (mutuo > 0)
-    note += "<li>✔ Detrazione interessi mutuo applicata</li>";
-
-  note += "</ul>";
-
-  document.getElementById("analisi").innerHTML = note;
+reportData.push("ISEE calcolato: "+isee.toFixed(2));
+updateReport();
 }
+
+function calc730(){
+
+let r=document.getElementById("r_red").value*1;
+let i=document.getElementById("r_irpef").value*1;
+let m=document.getElementById("r_med").value*1;
+let mu=document.getElementById("r_mut").value*1;
+let u=document.getElementById("r_uni").value*1;
+
+let det=(m*0.19)+(mu*0.19)+(u*0.19);
+
+let imp=i-det;
+
+let res="";
+
+if(imp>0)res="Debito: € "+imp.toFixed(2);
+else res="Credito: € "+Math.abs(imp).toFixed(2);
+
+document.getElementById("out730").innerText=res;
+
+reportData.push("730: "+res);
+updateReport();
+}
+
+function updateReport(){
+
+let html="<ul>";
+reportData.forEach(x=>html+="<li>"+x+"</li>");
+html+="</ul>";
+
+document.getElementById("report").innerHTML=html;
+}
+
 </script>
 
 </body>
