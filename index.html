@@ -1,246 +1,156 @@
 <!DOCTYPE html>
-<html lang="it">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>CAF Trainer PRO MAX</title>
+<title>CAF Trainer PRO - Flow</title>
 
 <style>
 body {
-  font-family: Arial, sans-serif;
-  max-width: 1100px;
+  font-family: Arial;
+  max-width: 900px;
   margin: auto;
-  background: #f7f7f7;
 }
 
-header {
-  text-align: center;
+.card {
+  border: 1px solid #ccc;
   padding: 15px;
+  margin-top: 10px;
 }
 
-nav {
-  display: flex;
-  gap: 5px;
-  margin-bottom: 15px;
-}
-
-nav button {
-  flex: 1;
+button {
   padding: 10px;
-  border: none;
+  margin-top: 10px;
   cursor: pointer;
-  background: #ddd;
 }
 
-nav button.active {
-  background: #4a90e2;
-  color: white;
-}
-
-section {
+.step {
   display: none;
-  background: white;
-  padding: 15px;
-  border-radius: 8px;
 }
 
-section.active {
+.step.active {
   display: block;
 }
 
-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 10px;
-}
-
-th, td {
-  border: 1px solid #ccc;
-  padding: 8px;
-}
-
-input, select {
-  width: 100%;
-  padding: 6px;
-  margin: 4px 0;
-}
-
-button.action {
-  margin-top: 10px;
-  padding: 10px;
-  cursor: pointer;
+.progress {
+  margin: 10px 0;
+  font-weight: bold;
 }
 </style>
 </head>
 
 <body>
 
-<header>
-<h1>🧾 CAF TRAINER PRO MAX</h1>
-<p>Simulatore ISEE + 730 per studio CAF</p>
-</header>
+<h1>🧾 CAF Trainer PRO - Flusso Pratica</h1>
 
-<nav>
-<button class="active" onclick="show(0)">👤 Anagrafica</button>
-<button onclick="show(1)">🧮 ISEE</button>
-<button onclick="show(2)">🧾 730</button>
-</nav>
+<div class="card">
 
-<!-- ANAGRAFICA -->
-<section class="active">
+<!-- STEP INDICATOR -->
+<div class="progress" id="progress">Step 0 di 6</div>
 
-<h2>📋 Nucleo familiare</h2>
+<!-- STEP 0 -->
+<div class="step active">
+<h2>🟦 Creazione Pratica</h2>
 
-<input id="nome" placeholder="Nome">
-<select id="ruolo">
-  <option value="titolare">Titolare DSU</option>
-  <option value="coniuge">Coniuge</option>
-  <option value="figlio">Figlio</option>
+<select id="tipo">
+  <option value="isee">ISEE (DSU)</option>
+  <option value="730">730</option>
 </select>
 
-<input id="eta" type="number" placeholder="Età">
-<select id="convivenza">
-  <option value="si">Convivenza Sì</option>
-  <option value="no">No</option>
-</select>
+<input id="nome" placeholder="Nome contribuente">
 
-<input id="reddito" type="number" placeholder="Reddito personale">
-<input id="patrimonio" type="number" placeholder="Patrimonio personale">
+<button onclick="next()">Avanti</button>
+</div>
 
-<button class="action" onclick="addPerson()">➕ Aggiungi</button>
+<!-- STEP 1 -->
+<div class="step">
+<h2>🟨 Anagrafica</h2>
 
-<table>
-<thead>
-<tr>
-<th>Nome</th><th>Ruolo</th><th>Età</th><th>Reddito</th><th>Patrimonio</th>
-</tr>
-</thead>
-<tbody id="people"></tbody>
-</table>
+<input placeholder="Codice fiscale">
+<input placeholder="Residenza">
 
-</section>
+<button onclick="next()">Avanti</button>
+</div>
 
-<!-- ISEE -->
-<section>
+<!-- STEP 2 -->
+<div class="step">
+<h2>🟧 Nucleo familiare</h2>
 
-<h2>🧮 Simulazione ISEE</h2>
+<p>Qui in futuro inserirai le persone (già creato nel tuo sistema precedente)</p>
 
-<button class="action" onclick="calcISEE()">Calcola ISEE</button>
+<button onclick="next()">Avanti</button>
+</div>
 
-<h3 id="iseeOut"></h3>
+<!-- STEP 3 -->
+<div class="step">
+<h2>🟥 Documenti base</h2>
 
-</section>
+<p id="docInfo"></p>
 
-<!-- 730 -->
-<section>
+<button onclick="next()">Avanti</button>
+</div>
 
-<h2>🧾 Simulazione 730</h2>
+<!-- STEP 4 -->
+<div class="step">
+<h2>🟪 Compilazione tecnica</h2>
 
-<input id="irpef" type="number" placeholder="IRPEF trattenuta">
-<input id="spese" type="number" placeholder="Spese detraibili totali">
+<p>Inserimento dati fiscali</p>
 
-<button class="action" onclick="calc730()">Calcola 730</button>
+<button onclick="next()">Avanti</button>
+</div>
 
-<h3 id="out730"></h3>
+<!-- STEP 5 -->
+<div class="step">
+<h2>🟩 Controllo CAF</h2>
 
-</section>
+<p>Verifica automatica dati</p>
+
+<button onclick="next()">Avanti</button>
+</div>
+
+<!-- STEP 6 -->
+<div class="step">
+<h2>⚫ Esito finale</h2>
+
+<h3 id="esito"></h3>
+
+</div>
+
+</div>
 
 <script>
 
-/* =========================
-   DATABASE
-========================= */
-let people = [];
+let step = 0;
 
-/* =========================
-   NAVIGATION
-========================= */
-function show(i){
-  let sections=document.querySelectorAll("section");
-  let buttons=document.querySelectorAll("nav button");
+function showStep(i){
+let steps = document.querySelectorAll(".step");
+steps.forEach((s,idx)=>{
+  s.classList.toggle("active", idx===i);
+});
 
-  sections.forEach((s,idx)=>{
-    s.classList.toggle("active", idx===i);
-    buttons[idx].classList.toggle("active", idx===i);
-  });
+document.getElementById("progress").innerText =
+"Step " + i + " di 6";
+
+if(i===3){
+  let tipo = document.getElementById("tipo").value;
+  document.getElementById("docInfo").innerText =
+  tipo==="isee"
+  ? "Serve DSU (Quadri A, FC1, FC2, FC3)"
+  : "Serve CU + Spese detraibili + Familiari a carico";
 }
 
-/* =========================
-   ANAGRAFICA
-========================= */
-function addPerson(){
+if(i===6){
+  let tipo = document.getElementById("tipo").value;
 
-let p = {
-  nome: nome.value,
-  ruolo: ruolo.value,
-  eta: parseInt(eta.value)||0,
-  convivenza: convivenza.value,
-  reddito: parseFloat(reddito.value)||0,
-  patrimonio: parseFloat(patrimonio.value)||0
-};
-
-people.push(p);
-render();
-clearForm();
+  document.getElementById("esito").innerText =
+  tipo==="isee"
+  ? "ISEE simulato completato"
+  : "730 simulato completato";
+}
 }
 
-function render(){
-
-peopleBody.innerHTML = people.map(p=>
-`<tr>
-<td>${p.nome}</td>
-<td>${p.ruolo}</td>
-<td>${p.eta}</td>
-<td>${p.reddito}</td>
-<td>${p.patrimonio}</td>
-</tr>`
-).join("");
-}
-
-function clearForm(){
-nome.value="";
-eta.value="";
-reddito.value="";
-patrimonio.value="";
-}
-
-/* =========================
-   ISEE ENGINE
-========================= */
-function calcISEE(){
-
-let redditoTot = people.reduce((a,b)=>a+b.reddito,0);
-let patTot = people.reduce((a,b)=>a+b.patrimonio,0);
-
-let comp = people.length;
-
-let scala = 1;
-if(comp==2) scala=1.57;
-else if(comp==3) scala=2.04;
-else if(comp==4) scala=2.46;
-else if(comp>=5) scala=2.85;
-
-let isee = (redditoTot + patTot*0.2) / scala;
-
-iseeOut.innerText = "ISEE simulato: € " + isee.toFixed(2);
-}
-
-/* =========================
-   730 ENGINE
-========================= */
-function calc730(){
-
-let irpefVal = parseFloat(irpef.value)||0;
-let speseVal = parseFloat(spese.value)||0;
-
-let det = speseVal * 0.19;
-
-let imp = irpefVal - det;
-
-out730.innerText =
-imp>0
-? "Debito: € " + imp.toFixed(2)
-: "Credito: € " + Math.abs(imp).toFixed(2);
-
+function next(){
+step++;
+showStep(step);
 }
 
 </script>
