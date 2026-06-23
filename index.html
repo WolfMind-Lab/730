@@ -1,26 +1,50 @@
 <!DOCTYPE html>
-<html>
+<html lang="it">
 <head>
 <meta charset="UTF-8">
-<title>CAF Trainer PRO - Flow</title>
+<title>CAF Trainer PRO MAX</title>
 
 <style>
 body {
-  font-family: Arial;
-  max-width: 900px;
+  font-family: Arial, sans-serif;
+  max-width: 1000px;
   margin: auto;
+  background: #f5f5f5;
+}
+
+header {
+  text-align: center;
+  padding: 10px;
 }
 
 .card {
-  border: 1px solid #ccc;
+  background: white;
   padding: 15px;
   margin-top: 10px;
+  border-radius: 8px;
+}
+
+input, select {
+  width: 100%;
+  padding: 6px;
+  margin: 5px 0;
 }
 
 button {
   padding: 10px;
   margin-top: 10px;
   cursor: pointer;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+th, td {
+  border: 1px solid #ccc;
+  padding: 6px;
 }
 
 .step {
@@ -32,86 +56,98 @@ button {
 }
 
 .progress {
-  margin: 10px 0;
   font-weight: bold;
+  margin-bottom: 10px;
 }
 </style>
 </head>
 
 <body>
 
-<h1>🧾 CAF Trainer PRO - Flusso Pratica</h1>
+<header>
+<h1>🧾 CAF TRAINER PRO MAX</h1>
+<p>Simulatore pratiche ISEE + 730 (didattico)</p>
+</header>
 
 <div class="card">
 
-<!-- STEP INDICATOR -->
-<div class="progress" id="progress">Step 0 di 6</div>
-
-<!-- STEP 0 -->
-<div class="step active">
-<h2>🟦 Creazione Pratica</h2>
+<!-- PRATICA -->
+<div id="start">
+<h2>📁 Nuova Pratica</h2>
 
 <select id="tipo">
   <option value="isee">ISEE (DSU)</option>
   <option value="730">730</option>
 </select>
 
-<input id="nome" placeholder="Nome contribuente">
-
-<button onclick="next()">Avanti</button>
+<button onclick="start()">Crea pratica</button>
 </div>
 
+<!-- STEP FLOW -->
+<div id="flow" style="display:none">
+
+<div class="progress" id="progress">Step 0</div>
+
 <!-- STEP 1 -->
-<div class="step">
-<h2>🟨 Anagrafica</h2>
-
-<input placeholder="Codice fiscale">
-<input placeholder="Residenza">
-
+<div class="step active">
+<h2>🟦 Anagrafica pratica</h2>
+<input id="nomePratica" placeholder="Nome contribuente">
+<input id="cf" placeholder="Codice fiscale">
 <button onclick="next()">Avanti</button>
 </div>
 
 <!-- STEP 2 -->
 <div class="step">
-<h2>🟧 Nucleo familiare</h2>
+<h2>🟨 Nucleo familiare</h2>
 
-<p>Qui in futuro inserirai le persone (già creato nel tuo sistema precedente)</p>
+<h4>Aggiungi persona</h4>
+<input id="nome" placeholder="Nome">
+<select id="ruolo">
+<option value="titolare">Titolare</option>
+<option value="coniuge">Coniuge</option>
+<option value="figlio">Figlio</option>
+</select>
+<input id="eta" type="number" placeholder="Età">
+<input id="reddito" type="number" placeholder="Reddito">
+<input id="patrimonio" type="number" placeholder="Patrimonio">
+
+<button onclick="addPerson()">Aggiungi</button>
+
+<table>
+<thead>
+<tr>
+<th>Nome</th><th>Ruolo</th><th>Reddito</th><th>Patrimonio</th>
+</tr>
+</thead>
+<tbody id="people"></tbody>
+</table>
 
 <button onclick="next()">Avanti</button>
 </div>
 
 <!-- STEP 3 -->
 <div class="step">
-<h2>🟥 Documenti base</h2>
-
-<p id="docInfo"></p>
-
+<h2>🟧 Documento base</h2>
+<p id="doc"></p>
 <button onclick="next()">Avanti</button>
 </div>
 
 <!-- STEP 4 -->
 <div class="step">
-<h2>🟪 Compilazione tecnica</h2>
+<h2>🟪 Elaborazione</h2>
 
-<p>Inserimento dati fiscali</p>
+<p>Calcolo in corso...</p>
 
-<button onclick="next()">Avanti</button>
+<button onclick="next()">Genera esito</button>
 </div>
 
 <!-- STEP 5 -->
 <div class="step">
-<h2>🟩 Controllo CAF</h2>
+<h2>🟩 Esito finale</h2>
 
-<p>Verifica automatica dati</p>
+<h3 id="out"></h3>
 
-<button onclick="next()">Avanti</button>
 </div>
-
-<!-- STEP 6 -->
-<div class="step">
-<h2>⚫ Esito finale</h2>
-
-<h3 id="esito"></h3>
 
 </div>
 
@@ -120,43 +156,32 @@ button {
 <script>
 
 /* =========================
-   DATABASE PERSONE (NUCLEO REALE)
+   DATABASE
 ========================= */
 let people = [];
-
-/* =========================
-   PRATICA ATTIVA
-========================= */
-let practice = {
-  tipo: null,
-  step: 0
-};
-
-/* =========================
-   NAV STEP FLOW
-========================= */
-function next(){
-
-practice.step++;
-
-showStep(practice.step);
-}
+let step = 0;
+let tipo = "";
 
 /* =========================
    START PRATICA
 ========================= */
-function startPractice(){
+function start(){
+tipo = document.getElementById("tipo").value;
 
-practice.tipo = document.getElementById("tipo").value;
-
-practice.step = 0;
+document.getElementById("start").style.display = "none";
+document.getElementById("flow").style.display = "block";
 
 showStep(0);
 }
 
 /* =========================
-   STEP VIEW
+   NAV STEP
 ========================= */
+function next(){
+step++;
+showStep(step);
+}
+
 function showStep(i){
 
 let steps = document.querySelectorAll(".step");
@@ -166,30 +191,24 @@ steps.forEach((s,idx)=>{
 });
 
 document.getElementById("progress").innerText =
-"Step " + i + " di 6";
+"Step " + i + " / 5";
 
-/* =========================
-   STEP 2 → USA DATI REALI
-========================= */
-if(i===2 && practice.tipo==="isee"){
+/* DOCUMENTO BASE */
+if(i===2){
 
-let totaleReddito = people.reduce((a,b)=>a+b.reddito,0);
-let totalePatrimonio = people.reduce((a,b)=>a+b.patrimonio,0);
-
-document.getElementById("docInfo").innerHTML = `
-<b>NUCLEO CARICATO:</b><br>
-Componenti: ${people.length}<br>
-Reddito totale: € ${totaleReddito}<br>
-Patrimonio: € ${totalePatrimonio}
-`;
+if(tipo==="isee"){
+document.getElementById("doc").innerText =
+"DSU richiesta: Quadro A (nucleo), FC1 (redditi), FC2 (patrimonio mobiliare), FC3 (immobiliare)";
+}else{
+document.getElementById("doc").innerText =
+"730: CU, familiari a carico, oneri detraibili";
+}
 }
 
-/* =========================
-   ESITO REALE
-========================= */
-if(i===6){
+/* ESITO */
+if(i===4){
 
-if(practice.tipo==="isee"){
+if(tipo==="isee"){
 
 let reddito = people.reduce((a,b)=>a+b.reddito,0);
 let pat = people.reduce((a,b)=>a+b.patrimonio,0);
@@ -204,18 +223,58 @@ else if(comp>=5) scala=2.85;
 
 let isee = (reddito + pat*0.2) / scala;
 
-document.getElementById("esito").innerText =
-"ISEE CALCOLATO: € " + isee.toFixed(2);
+document.getElementById("out").innerText =
+"ISEE simulato: € " + isee.toFixed(2);
 }
 
-if(practice.tipo==="730"){
+if(tipo==="730"){
 
-document.getElementById("esito").innerText =
-"730 pronto (collegamento dati da implementare)";
+let reddito = people.reduce((a,b)=>a+b.reddito,0);
+let det = reddito * 0.19;
+
+document.getElementById("out").innerText =
+"730 simulato (stima): Detrazione € " + det.toFixed(2);
 }
 
 }
 
+}
+
+/* =========================
+   PERSONE
+========================= */
+function addPerson(){
+
+people.push({
+  nome: nome.value,
+  ruolo: ruolo.value,
+  eta: eta.value,
+  reddito: parseFloat(reddito.value)||0,
+  patrimonio: parseFloat(patrimonio.value)||0
+});
+
+render();
+clear();
+}
+
+function render(){
+
+document.getElementById("people").innerHTML =
+people.map(p=>
+`<tr>
+<td>${p.nome}</td>
+<td>${p.ruolo}</td>
+<td>${p.reddito}</td>
+<td>${p.patrimonio}</td>
+</tr>`
+).join("");
+}
+
+function clear(){
+nome.value="";
+eta.value="";
+reddito.value="";
+patrimonio.value="";
 }
 
 </script>
