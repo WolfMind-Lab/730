@@ -119,10 +119,48 @@ button {
 
 <script>
 
-let step = 0;
+/* =========================
+   DATABASE PERSONE (NUCLEO REALE)
+========================= */
+let people = [];
 
+/* =========================
+   PRATICA ATTIVA
+========================= */
+let practice = {
+  tipo: null,
+  step: 0
+};
+
+/* =========================
+   NAV STEP FLOW
+========================= */
+function next(){
+
+practice.step++;
+
+showStep(practice.step);
+}
+
+/* =========================
+   START PRATICA
+========================= */
+function startPractice(){
+
+practice.tipo = document.getElementById("tipo").value;
+
+practice.step = 0;
+
+showStep(0);
+}
+
+/* =========================
+   STEP VIEW
+========================= */
 function showStep(i){
+
 let steps = document.querySelectorAll(".step");
+
 steps.forEach((s,idx)=>{
   s.classList.toggle("active", idx===i);
 });
@@ -130,27 +168,54 @@ steps.forEach((s,idx)=>{
 document.getElementById("progress").innerText =
 "Step " + i + " di 6";
 
-if(i===3){
-  let tipo = document.getElementById("tipo").value;
-  document.getElementById("docInfo").innerText =
-  tipo==="isee"
-  ? "Serve DSU (Quadri A, FC1, FC2, FC3)"
-  : "Serve CU + Spese detraibili + Familiari a carico";
+/* =========================
+   STEP 2 → USA DATI REALI
+========================= */
+if(i===2 && practice.tipo==="isee"){
+
+let totaleReddito = people.reduce((a,b)=>a+b.reddito,0);
+let totalePatrimonio = people.reduce((a,b)=>a+b.patrimonio,0);
+
+document.getElementById("docInfo").innerHTML = `
+<b>NUCLEO CARICATO:</b><br>
+Componenti: ${people.length}<br>
+Reddito totale: € ${totaleReddito}<br>
+Patrimonio: € ${totalePatrimonio}
+`;
 }
 
+/* =========================
+   ESITO REALE
+========================= */
 if(i===6){
-  let tipo = document.getElementById("tipo").value;
 
-  document.getElementById("esito").innerText =
-  tipo==="isee"
-  ? "ISEE simulato completato"
-  : "730 simulato completato";
-}
+if(practice.tipo==="isee"){
+
+let reddito = people.reduce((a,b)=>a+b.reddito,0);
+let pat = people.reduce((a,b)=>a+b.patrimonio,0);
+
+let comp = people.length;
+
+let scala = 1;
+if(comp==2) scala=1.57;
+else if(comp==3) scala=2.04;
+else if(comp==4) scala=2.46;
+else if(comp>=5) scala=2.85;
+
+let isee = (reddito + pat*0.2) / scala;
+
+document.getElementById("esito").innerText =
+"ISEE CALCOLATO: € " + isee.toFixed(2);
 }
 
-function next(){
-step++;
-showStep(step);
+if(practice.tipo==="730"){
+
+document.getElementById("esito").innerText =
+"730 pronto (collegamento dati da implementare)";
+}
+
+}
+
 }
 
 </script>
